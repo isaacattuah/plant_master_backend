@@ -15,8 +15,9 @@ class SearchList extends StatefulWidget {
 }
 
 class _SearchListState extends State<SearchList> {
+  //late TextEditingController _controller;
   late List<Plant> plants;
-  String query = "Aloe";
+  String initial_query = "Aloe";
   bool _isLoading = true;
 
   Icon cusIcon = Icon(Icons.search);
@@ -27,7 +28,7 @@ class _SearchListState extends State<SearchList> {
     "textCriteria" : [
       {
         "paramType": "quickSearch",
-        "searchToken": 'Aloe',
+        "searchToken": '',
       }
     ],
     "statusCriteria" : [ ],
@@ -50,6 +51,8 @@ class _SearchListState extends State<SearchList> {
 
 
 
+
+
   Future<List<Plant>> getPlant() async {
     String url = "https://explorer.natureserve.org/api/data/speciesSearch";
     var response = await post(
@@ -60,6 +63,7 @@ class _SearchListState extends State<SearchList> {
         },
         body: jsonEncode(searchJSON),
         encoding: Encoding.getByName("utf-8"));
+
 
 
     Map json = jsonDecode(response.body);
@@ -131,6 +135,7 @@ class _SearchListState extends State<SearchList> {
   @override
   void initState(){
     super.initState();
+    searchJSON["textCriteria"][0]["searchToken"] = initial_query;
     getPlants();
   }
 
@@ -145,13 +150,17 @@ class _SearchListState extends State<SearchList> {
               setState(() {
                 if(cusIcon.icon == Icons.search){
                   cusIcon = Icon(Icons.cancel);
-                  cusSearchBar = const TextField(
+                  cusSearchBar =  TextField(
                     textInputAction: TextInputAction.go,
-                    decoration: InputDecoration(
+                      onSubmitted: (String value) async {
+                        searchJSON["textCriteria"][0]["searchToken"] = value;
+                        getPlants();
+                      },
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: "Scientific or Common Name"
                     ),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16.0
                     )
