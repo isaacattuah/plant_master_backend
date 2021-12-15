@@ -5,7 +5,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'nature.dart';
+import 'package:plant_master/photos.dart';
 
+String? plantImg;
 
 Future<Plant> fetchRandomPlant() async {
   // Animal Range Approximation (100002 - 125003)
@@ -33,12 +35,53 @@ Future<Plant> fetchRandomPlant() async {
     // final parsedJson = jsonDecode(jsonData);
     //
     // print('${parsedJson.runtimeType} : $parsedJson \n');
+    Plant a = Plant.fromJson(jsonDecode(response.body));
+    plantImg = await fetchPhoto(a.scientificName);
 
-    return Plant.fromJson(jsonDecode(response.body)) ;
+    return a ;
   } else {
     // If the server did not return a 200 OK response,
     // then throw an exception.
     throw Exception('Failed to load plant card');
+
+  }
+}
+
+
+
+
+Future<String> fetchPhoto(String query) async {
+  var response;
+  do {
+    Map<String, dynamic> searchJSON = {
+      "engine": "google",
+      "q" : "",
+      "api_key": "c36f9742694de0e993dd584d46b552406398f66348f1036519726d6ecb977171"
+    };
+    searchJSON["q"] = query.replaceAll(" ", '+');
+    String url = "https://serpapi.com/search.json?engine=${searchJSON["engine"]}&q=${searchJSON["q"]}&google_domain=google.com&tbm=isch&num=1&ijn=1&api_key=${searchJSON["api_key"]}";
+    //print(url);
+    response = await http.get(Uri.parse(url));
+  }
+  while (response.statusCode != 200);
+
+  if (response.statusCode == 200) {
+    // If the server did return a 200 OK response,
+    // then parse the JSON.
+
+    // final jsonData = response.body;
+    // final parsedJson = jsonDecode(jsonData);
+    //
+    // print('${parsedJson.runtimeType} : $parsedJson \n');
+
+    Photo a = Photo.fromJson(jsonDecode(response.body));
+    print(a.photo_url);
+    return(a.photo_url);
+
+  } else {
+    // If the server did not return a 200 OK response,
+    // then throw an exception.
+    throw Exception('Failed to load plant image');
 
   }
 }
@@ -58,6 +101,10 @@ class RandomPlant extends StatefulWidget {
 
 class _RandomPlantState extends State<RandomPlant> {
   late Future<Plant> futurePlant;
+  //late Future<String> futurePhoto;
+
+
+
 
   @override
   void initState() {
@@ -77,12 +124,14 @@ class _RandomPlantState extends State<RandomPlant> {
             future: futurePlant,
             builder: (context, snapshot) {
               if (snapshot.hasData) {
+                String query = snapshot.data!.scientificName;
+
                 return Center(
                   child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        //Image.network('https://picsum.photos/250?image=9'),
+                        Image.network(plantImg!),
                         Text(snapshot.data!.scientificName),
                         Text(snapshot.data!.primaryCommonName),
                         // Text(snapshot.data!.taxonomicComments),
