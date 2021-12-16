@@ -91,7 +91,7 @@ class _PlantPageState extends State<PlantPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.network(snapshot.data!.photo_url),
+                    Image.network(snapshot.data!.photo_url, fit: BoxFit.cover),
                     Text(widget.plant.scientificName),
                     Text(widget.plant.primaryCommonName),
                     Text(widget.plant.taxonomicComments),
@@ -109,7 +109,7 @@ class _PlantPageState extends State<PlantPage> {
             else if (snapshot.hasError) {
               return Text('${snapshot.error}');
             }
-            return const CircularProgressIndicator();
+            return Center(child: const CircularProgressIndicator());
           },
         )
     );
